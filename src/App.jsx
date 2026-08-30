@@ -91,6 +91,7 @@ function Icon({ name }) {
     back: <path d="M15 5l-7 7 7 7" {...p} />,
     share: <><circle cx="18" cy="5" r="2.5" {...p} /><circle cx="6" cy="12" r="2.5" {...p} /><circle cx="18" cy="19" r="2.5" {...p} /><path d="M8.2 10.8l7.6-4.6M8.2 13.2l7.6 4.6" {...p} /></>,
     edit: <><path d="M4 20h4l11-11-4-4L4 16v4z" {...p} /><path d="M13.5 6.5l4 4" {...p} /></>,
+    flag: <><path d="M5 4v16" {...p} /><path d="M5 4h11l-2.5 4L16 12H5" {...p} /></>,
   };
   return <svg width="16" height="16" viewBox="0 0 24 24">{map[name] || null}</svg>;
 }
@@ -215,6 +216,53 @@ function Grid({ works, onOpen }) {
   );
 }
 
+function LegalPage({ title, updated, children, setPage }) {
+  return (
+    <div style={{ overflowY: "auto", height: "100vh" }} className="sig-scrollbar">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 48px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="sig-serif" style={{ fontSize: 22, cursor: "pointer" }} onClick={() => setPage("landing")}>Signature</div>
+        <button className="sig-btn-outline" onClick={() => setPage("landing")}>Back home</button>
+      </div>
+      <div style={{ maxWidth: 720, margin: "0 auto", padding: "60px 24px 100px" }}>
+        <div className="sig-serif" style={{ fontSize: 38, marginBottom: 8 }}>{title}</div>
+        <div style={{ fontSize: 13, color: "rgba(234,231,224,0.45)", marginBottom: 40 }}>Last updated {updated}</div>
+        <div style={{ fontSize: 15, color: "rgba(234,231,224,0.75)", lineHeight: 1.8 }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function PrivacyPage({ setPage }) {
+  return (
+    <LegalPage title="Privacy Policy" updated="30 August 2026" setPage={setPage}>
+      <p><strong style={{ color: "#eae7e0" }}>What we collect.</strong> When you create an account, we store your email address, the name and username you choose, and any profile details you add (bio, links, avatar, cover image). When you publish artwork, we store the image file, title, description, category, tags, and any comments or likes tied to it.</p>
+      <p><strong style={{ color: "#eae7e0" }}>How we use it.</strong> Your email is used only to send you sign-in links and, if applicable, notifications about activity on your account. We do not sell, rent, or share your data with advertisers. We do not run ads on Signature.</p>
+      <p><strong style={{ color: "#eae7e0" }}>Where it's stored.</strong> Account data, artwork, and images are stored with Supabase, our database and hosting provider, on servers they operate. Data is protected by access rules that ensure only you can edit or delete your own account and uploads.</p>
+      <p><strong style={{ color: "#eae7e0" }}>Public content.</strong> Artwork you publish, along with your name, username, and avatar, is visible to anyone who visits Signature, including people without an account. Comments and likes are attributed to your account and are also public.</p>
+      <p><strong style={{ color: "#eae7e0" }}>Your choices.</strong> You can edit or delete any artwork you've published at any time. You can update your profile information in Settings. If you'd like your account and all associated data permanently deleted, contact us using the details below and we'll process the request.</p>
+      <p><strong style={{ color: "#eae7e0" }}>Cookies and tracking.</strong> Signature uses only the minimum technical storage needed to keep you signed in. We do not use third-party advertising trackers.</p>
+      <p><strong style={{ color: "#eae7e0" }}>Changes.</strong> If this policy changes in a meaningful way, we'll update the date above.</p>
+      <p><strong style={{ color: "#eae7e0" }}>Contact.</strong> Questions about your data can be sent to the email address associated with the Signature account that sends your sign-in links.</p>
+    </LegalPage>
+  );
+}
+
+function TermsPage({ setPage }) {
+  return (
+    <LegalPage title="Terms of Service" updated="30 August 2026" setPage={setPage}>
+      <p><strong style={{ color: "#eae7e0" }}>Using Signature.</strong> Signature is a free gallery and community for artists, illustrators, photographers, and creators to publish and discuss original work. By creating an account, you agree to these terms.</p>
+      <p><strong style={{ color: "#eae7e0" }}>Your content.</strong> You retain full ownership of everything you upload. By publishing artwork, you grant Signature a license to display, resize, and store it so the platform can function — we never claim ownership of your work and never use it for anything beyond displaying it on the site.</p>
+      <p><strong style={{ color: "#eae7e0" }}>Only upload what's yours.</strong> Don't publish artwork, photographs, or other content you don't have the rights to. Don't impersonate another artist or misattribute someone else's work as your own.</p>
+      <p><strong style={{ color: "#eae7e0" }}>Community conduct.</strong> Critiques and comments should be honest but respectful. Harassment, hate speech, sexually explicit content, and content that endangers or exploits minors are never permitted and will result in immediate removal and account termination.</p>
+      <p><strong style={{ color: "#eae7e0" }}>Reporting.</strong> If you see content that violates these terms, use the report option on the artwork or contact us directly.</p>
+      <p><strong style={{ color: "#eae7e0" }}>Account termination.</strong> We may suspend or remove accounts that violate these terms. You may delete your own account and content at any time.</p>
+      <p><strong style={{ color: "#eae7e0" }}>No warranty.</strong> Signature is provided free and as-is. We aim for reliability but can't guarantee the service will always be available or error-free.</p>
+      <p><strong style={{ color: "#eae7e0" }}>Changes to these terms.</strong> We may update these terms as the platform evolves. Continued use after changes means you accept the updated terms.</p>
+    </LegalPage>
+  );
+}
+
+
 function LandingPage({ setPage, stats }) {
   return (
     <div style={{ overflowY: "auto", height: "100vh" }} className="sig-scrollbar">
@@ -274,7 +322,11 @@ function LandingPage({ setPage, stats }) {
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", padding: "24px 48px", borderTop: "1px solid rgba(255,255,255,0.08)", fontSize: 12, color: "rgba(234,231,224,0.4)" }}>
         <div className="sig-serif" style={{ fontSize: 16, color: "#eae7e0" }}>Signature</div>
-        <div>© 2026 · FREE FOREVER · MADE WITH CARE</div>
+        <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
+          <span style={{ cursor: "pointer" }} onClick={() => setPage("privacy")}>Privacy</span>
+          <span style={{ cursor: "pointer" }} onClick={() => setPage("terms")}>Terms</span>
+          <span>© 2026 · FREE FOREVER · MADE WITH CARE</span>
+        </div>
       </div>
     </div>
   );
@@ -359,6 +411,11 @@ function AuthPage({ mode, setPage, onError, error }) {
               {isSignup ? <>Already have one? <span style={{ color: "#eae7e0", cursor: "pointer", textDecoration: "underline" }} onClick={() => setPage("signin")}>Sign in</span></>
                 : <>New here? <span style={{ color: "#eae7e0", cursor: "pointer", textDecoration: "underline" }} onClick={() => setPage("signup")}>Create an account</span></>}
             </div>
+            {isSignup && (
+              <div style={{ textAlign: "center", fontSize: 12, color: "rgba(234,231,224,0.4)", marginTop: 14 }}>
+                By creating an account you agree to our <span style={{ textDecoration: "underline", cursor: "pointer" }} onClick={() => setPage("terms")}>Terms</span> and <span style={{ textDecoration: "underline", cursor: "pointer" }} onClick={() => setPage("privacy")}>Privacy Policy</span>.
+              </div>
+            )}
           </>
         )}
       </div>
@@ -545,6 +602,68 @@ function EditModal({ work, onClose, onSaved }) {
   );
 }
 
+function ReportModal({ work, reporterId, onClose, onSubmitted }) {
+  const [reason, setReason] = useState("");
+  const [details, setDetails] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  const REASONS = [
+    "Not the poster's original work",
+    "Sexually explicit or inappropriate content",
+    "Harassment or hate speech",
+    "Spam or scam",
+    "Endangers or exploits a minor",
+    "Other",
+  ];
+
+  async function submit() {
+    if (!reason) { setErr("Choose a reason."); return; }
+    setBusy(true);
+    setErr("");
+    const { error } = await supabase.from("reports").insert({
+      reporter_id: reporterId,
+      work_id: work.id,
+      reason,
+      details: details.trim(),
+    });
+    setBusy(false);
+    if (error) { setErr(error.message); return; }
+    onSubmitted();
+  }
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }} onClick={onClose}>
+      <div className="sig-fade-in" style={{ width: 440, maxWidth: "92vw", background: "#141414", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden" }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 22px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="sig-serif" style={{ fontSize: 19 }}>Report this work</div>
+          <div style={{ cursor: "pointer", color: "rgba(234,231,224,0.6)" }} onClick={onClose}>✕</div>
+        </div>
+        <div style={{ padding: 22 }}>
+          <div style={{ fontSize: 13, color: "rgba(234,231,224,0.6)", marginBottom: 18 }}>
+            Reports are reviewed by Signature. This won't notify the artist directly.
+          </div>
+          <label className="sig-label">Reason</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+            {REASONS.map((r) => (
+              <label key={r} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, cursor: "pointer" }}>
+                <input type="radio" name="report-reason" checked={reason === r} onChange={() => setReason(r)} /> {r}
+              </label>
+            ))}
+          </div>
+          <label className="sig-label">Additional details (optional)</label>
+          <textarea className="sig-input" rows={3} style={{ marginBottom: 16 }} value={details} onChange={(e) => setDetails(e.target.value)} />
+          {err && <div style={{ color: "#e8746a", fontSize: 13, marginBottom: 12 }}>{err}</div>}
+          <div style={{ display: "flex", gap: 10 }}>
+            <button className="sig-btn-primary" disabled={busy} onClick={submit}>{busy ? "Submitting…" : "Submit report"}</button>
+            <button className="sig-btn-outline" onClick={onClose}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function WorkDetail({ work, profile, onBack, onDelete, onViewProfile, onEdit }) {
   const [comment, setComment] = useState("");
   const [likes, setLikes] = useState([]);
@@ -552,6 +671,8 @@ function WorkDetail({ work, profile, onBack, onDelete, onViewProfile, onEdit }) 
   const [isFollowing, setIsFollowing] = useState(false);
   const [isCritique, setIsCritique] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const [reportSent, setReportSent] = useState(false);
 
   function copyShareLink() {
     const url = `${window.location.origin}${window.location.pathname}?work=${work.id}`;
@@ -625,6 +746,9 @@ function WorkDetail({ work, profile, onBack, onDelete, onViewProfile, onEdit }) 
           <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "rgba(234,231,224,0.5)" }}><Icon name="eye" /> {work.views || 0}</div>
             <div style={{ cursor: "pointer", color: "rgba(234,231,224,0.5)", display: "flex", alignItems: "center", gap: 4, fontSize: 13 }} onClick={copyShareLink}><Icon name="share" /> {shareCopied ? "Copied" : "Share"}</div>
+            {profile && profile.id !== work.user_id && (
+              <div style={{ cursor: "pointer", color: "rgba(234,231,224,0.5)", display: "flex", alignItems: "center", gap: 4, fontSize: 13 }} onClick={() => setShowReport(true)}><Icon name="flag" /> Report</div>
+            )}
           </div>
         </div>
         <div className="sig-serif" style={{ fontSize: 26, margin: "8px 0 16px" }}>{work.title}</div>
@@ -686,6 +810,19 @@ function WorkDetail({ work, profile, onBack, onDelete, onViewProfile, onEdit }) 
           ))}
         </div>
       </div>
+      {showReport && (
+        <ReportModal
+          work={work}
+          reporterId={profile.id}
+          onClose={() => setShowReport(false)}
+          onSubmitted={() => { setShowReport(false); setReportSent(true); setTimeout(() => setReportSent(false), 2500); }}
+        />
+      )}
+      {reportSent && (
+        <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "#eae7e0", color: "#0a0a0a", padding: "10px 20px", borderRadius: 999, fontSize: 13, fontWeight: 500, zIndex: 200 }}>
+          Report submitted. Thank you.
+        </div>
+      )}
     </div>
   );
 }
@@ -1044,6 +1181,8 @@ export default function App() {
   if (!ready) return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}><GlobalStyle />Loading…</div>;
 
   if (page === "landing") return <><GlobalStyle /><LandingPage setPage={setPage} stats={{ works: works.length, creators: creatorCount }} /></>;
+  if (page === "privacy") return <><GlobalStyle /><PrivacyPage setPage={setPage} /></>;
+  if (page === "terms") return <><GlobalStyle /><TermsPage setPage={setPage} /></>;
   if (page === "signin" || page === "signup") return <><GlobalStyle /><AuthPage mode={page} setPage={setPage} onError={setAuthError} error={authError} /></>;
 
   let filtered = works.filter((w) => cat === "All" || w.category === cat);

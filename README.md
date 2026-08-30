@@ -1,11 +1,74 @@
 # Signature — setup guide
 
-This is a full rebuild containing everything built across the whole project:
-passwordless email-code (OTP) login, masonry Explore grid, working Popular
-sort, a real Following feed, public artist profiles, real notifications,
-edit/delete on your own work, share links, and Critique Requested mode.
-Everything runs on free tiers — Supabase (database, auth, storage) + Vercel
-(hosting).
+## 🚀 This checkpoint — what's new and what to do
+
+This build adds: Privacy Policy + Terms of Service pages, and a Report
+button on every artwork (with a `reports` table for moderation). Combined
+with everything from before (OTP-free magic link login, masonry grid,
+working Popular sort, real Following feed, public profiles, notifications,
+edit/delete, share, critique mode), this is meant to be launch-ready for
+public signups.
+
+### If you're updating an existing Supabase project (not starting fresh)
+
+Run just this in Supabase → SQL Editor (safe to run once, adds the reports
+table without touching anything else):
+
+```sql
+create table if not exists reports (
+  id uuid primary key default gen_random_uuid(),
+  reporter_id uuid references profiles(id) on delete cascade not null,
+  work_id uuid references works(id) on delete cascade not null,
+  reason text not null,
+  details text default '',
+  status text not null default 'pending',
+  created_at timestamptz default now()
+);
+
+alter table reports enable row level security;
+
+drop policy if exists "Users can view their own reports" on reports;
+create policy "Users can view their own reports" on reports for select using (auth.uid() = reporter_id);
+
+drop policy if exists "Users can submit reports" on reports;
+create policy "Users can submit reports" on reports for insert with check (auth.uid() = reporter_id);
+```
+
+Then replace your `src/App.jsx` with the one in this zip, and redeploy (push
+to GitHub — Vercel redeploys automatically).
+
+### If you're starting fresh
+
+Just run the full `supabase-schema.sql` once — it already includes the
+reports table.
+
+## ✅ Pre-launch checklist (public launch, 100 users)
+
+Go through these in order. Check off each before opening signups widely.
+
+1. **Confirm email is ON** — Supabase → Authentication → Providers → Email
+   → "Confirm email" toggled on. Stops fake/bot signups.
+2. **Site URL is your live domain, not localhost** — Supabase →
+   Authentication → URL Configuration → Site URL set to your real
+   `.vercel.app` (or custom domain) URL. Also add it under Redirect URLs.
+3. **Magic Link email template uses `{{ .ConfirmationURL }}`** — Supabase →
+   Authentication → Emails → Templates → "Magic link or OTP" — body should
+   contain a link, not `{{ .Token }}`.
+4. **Gmail SMTP connected** — Supabase → Project Settings → Authentication →
+   SMTP Settings — so sign-in emails send reliably instead of hitting
+   Supabase's shared rate limit.
+5. **Privacy Policy + Terms live** — included in this checkpoint, linked
+   from the landing page footer and the sign-up form.
+6. **Report button live** — included in this checkpoint, visible on any
+   artwork you didn't post yourself.
+7. **Review reports periodically** — Supabase → Table Editor → `reports`
+   table. No admin UI yet; check this table manually every so often, or ask
+   me to build a simple admin view if volume grows.
+8. **Framework Preset is Vite in Vercel** — Vercel → Settings → General →
+   Framework Preset must say "Vite," not "Other," or builds fail.
+9. **Storage headroom** — free Supabase tier gives 1GB image storage. Fine
+   for ~100 users at reasonable upload sizes; keep an eye on it as you grow
+   past that.
 
 ## 1. Create your Supabase project
 
@@ -20,11 +83,11 @@ Everything runs on free tiers — Supabase (database, auth, storage) + Vercel
 3. Click **Run**
 
 This creates every table (profiles, works, likes, comments, follows,
-collections, notifications), the image storage bucket, all security rules,
-and the automatic triggers that create profiles on signup and notifications
-on likes/comments/follows.
+collections, notifications, reports), the image storage bucket, all
+security rules, and the automatic triggers that create profiles on signup
+and notifications on likes/comments/follows.
 
-## 3. Turn on Email OTP
+## 3. Turn on Email OTP / Magic Link
 
 Supabase → **Authentication** → **Providers** → **Email**:
 - Make sure Email is enabled

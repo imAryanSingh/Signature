@@ -173,6 +173,21 @@ $$ language plpgsql security definer;
 drop trigger if exists on_new_follow on follows;
 create trigger on_new_follow after insert on follows for each row execute function public.handle_new_follow();
 
+-- REPORTS (content moderation)
+create table reports (
+  id uuid primary key default gen_random_uuid(),
+  reporter_id uuid references profiles(id) on delete cascade not null,
+  work_id uuid references works(id) on delete cascade not null,
+  reason text not null,
+  details text default '',
+  status text not null default 'pending', -- 'pending' | 'reviewed' | 'dismissed'
+  created_at timestamptz default now()
+);
+
+alter table reports enable row level security;
+create policy "Users can view their own reports" on reports for select using (auth.uid() = reporter_id);
+create policy "Users can submit reports" on reports for insert with check (auth.uid() = reporter_id);
+
 -- STORAGE: bucket for artwork + avatars/covers (free tier: 1GB total)
 insert into storage.buckets (id, name, public) values ('artwork', 'artwork', true);
 
