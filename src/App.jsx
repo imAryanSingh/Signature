@@ -68,6 +68,45 @@ const GlobalStyle = () => (
     .sig-fade-in { animation: sigFadeIn .35s ease; }
     @keyframes sigFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     textarea.sig-input { resize: vertical; font-family: ${FONT_SANS}; }
+
+    /* Responsive layout */
+    .sig-app-shell { display: flex; }
+    .sig-sidebar-desktop { display: flex; }
+    .sig-mobile-topbar { display: none; }
+    .sig-mobile-bottomnav { display: none; }
+    .sig-main-area { flex: 1; min-width: 0; height: 100vh; overflow-y: auto; }
+    .sig-work-detail { display: flex; height: 100vh; }
+    .sig-work-image-pane { flex: 1; }
+    .sig-work-side-pane { width: 340px; flex-shrink: 0; }
+
+    @media (max-width: 860px) {
+      .sig-sidebar-desktop { display: none; }
+      .sig-mobile-topbar { display: flex; }
+      .sig-mobile-bottomnav { display: flex; }
+      .sig-main-area { height: auto; min-height: 100vh; padding-bottom: 76px; overflow-y: visible; }
+      .sig-masonry { column-count: 2 !important; padding: 14px 14px 40px !important; }
+      .sig-cat-pill { font-size: 11px; padding: 6px 11px; }
+      .sig-work-detail { flex-direction: column; height: auto; min-height: 100vh; }
+      .sig-work-image-pane { height: 60vh; flex: none; }
+      .sig-work-side-pane { width: 100%; padding-bottom: 90px; }
+      .sig-landing-hero { grid-template-columns: 1fr !important; padding: 40px 20px !important; }
+      .sig-landing-hero-title { font-size: 34px !important; }
+      .sig-landing-craft { grid-template-columns: 1fr !important; }
+      .sig-landing-manifesto { grid-template-columns: 1fr !important; gap: 24px !important; }
+      .sig-auth-grid { grid-template-columns: 1fr !important; }
+      .sig-auth-hero-panel { display: none; }
+      .sig-topbar-row { flex-direction: column; align-items: flex-start !important; gap: 14px; padding: 20px 16px 0 !important; }
+      .sig-topbar-search { width: 100% !important; }
+      .sig-category-bar { padding: 14px 16px 16px !important; overflow-x: auto; flex-wrap: nowrap !important; }
+      .sig-profile-header { flex-direction: column !important; align-items: flex-start !important; padding: 0 16px !important; margin-top: -36px !important; }
+      .sig-profile-header img, .sig-profile-header > div:first-child { width: 76px !important; height: 76px !important; }
+      .sig-settings-grid { grid-template-columns: 1fr !important; }
+      .sig-upload-modal-grid { grid-template-columns: 1fr !important; }
+      .sig-upload-modal-grid > div:first-child { border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    }
+    @media (max-width: 480px) {
+      .sig-masonry { column-count: 2 !important; column-gap: 3px !important; }
+    }
   `}</style>
 );
 
@@ -161,15 +200,70 @@ function Sidebar({ profile, page, setPage, onUploadClick, onSignOut, onMyProfile
   );
 }
 
+function MobileTopBar({ profile, setPage, onUploadClick }) {
+  return (
+    <div className="sig-mobile-topbar" style={{ alignItems: "center", justifyContent: "space-between", padding: "16px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)", position: "sticky", top: 0, background: "#0a0a0a", zIndex: 20 }}>
+      <div className="sig-serif" style={{ fontSize: 20, cursor: "pointer" }} onClick={() => setPage("landing")}>Signature</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        {profile ? (
+          <>
+            <div style={{ cursor: "pointer", color: "rgba(234,231,224,0.8)" }} onClick={onUploadClick}><Icon name="upload" /></div>
+            <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#2a2a2a", overflow: "hidden", cursor: "pointer" }} onClick={() => setPage("settings")}>
+              {profile.avatar_url && <img src={profile.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+            </div>
+          </>
+        ) : (
+          <button className="sig-btn-primary" style={{ padding: "8px 16px", fontSize: 13 }} onClick={() => setPage("signin")}>Sign in</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MobileBottomNav({ profile, page, setPage, onMyProfile, unreadCount }) {
+  const items = [
+    { id: "explore", label: "Explore", icon: "explore" },
+    { id: "following", label: "Following", icon: "home" },
+  ];
+  return (
+    <div className="sig-mobile-bottomnav" style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#0a0a0a", borderTop: "1px solid rgba(255,255,255,0.08)", zIndex: 30, padding: "8px 4px", justifyContent: "space-around" }}>
+      {items.map((it) => (
+        <div key={it.id} onClick={() => setPage(it.id)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "4px 10px", color: page === it.id ? "#eae7e0" : "rgba(234,231,224,0.4)" }}>
+          <Icon name={it.icon} />
+          <span style={{ fontSize: 10 }}>{it.label}</span>
+        </div>
+      ))}
+      {profile && (
+        <>
+          <div onClick={onMyProfile} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "4px 10px", color: page === "profile" ? "#eae7e0" : "rgba(234,231,224,0.4)" }}>
+            <Icon name="user" />
+            <span style={{ fontSize: 10 }}>Profile</span>
+          </div>
+          <div onClick={() => setPage("notifications")} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "4px 10px", position: "relative", color: page === "notifications" ? "#eae7e0" : "rgba(234,231,224,0.4)" }}>
+            <Icon name="bell" />
+            <span style={{ fontSize: 10 }}>Alerts</span>
+            {unreadCount > 0 && <span style={{ position: "absolute", top: 0, right: 4, background: "#e0748f", width: 7, height: 7, borderRadius: "50%" }} />}
+          </div>
+          <div onClick={() => setPage("collections")} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "4px 10px", color: page === "collections" ? "#eae7e0" : "rgba(234,231,224,0.4)" }}>
+            <Icon name="layers" />
+            <span style={{ fontSize: 10 }}>Saved</span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+
 function TopBar({ eyebrow, title, search, setSearch }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", padding: "28px 40px 0" }}>
+    <div className="sig-topbar-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", padding: "28px 40px 0" }}>
       <div>
         <div style={{ fontSize: 11, letterSpacing: "0.1em", color: "rgba(234,231,224,0.45)", marginBottom: 6 }}>{eyebrow}</div>
         <div className="sig-serif" style={{ fontSize: 34 }}>{title}</div>
       </div>
       {search !== undefined && (
-        <div style={{ position: "relative", width: 300 }}>
+        <div className="sig-topbar-search" style={{ position: "relative", width: 300 }}>
           <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "rgba(234,231,224,0.4)" }}><Icon name="search" /></div>
           <input className="sig-input" style={{ paddingLeft: 38, borderRadius: 999, background: "rgba(255,255,255,0.05)" }} placeholder="Search work, artists, tags..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
@@ -180,7 +274,7 @@ function TopBar({ eyebrow, title, search, setSearch }) {
 
 function CategoryBar({ cat, setCat, sort, setSort }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 40px 22px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+    <div className="sig-category-bar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 40px 22px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
       <div style={{ display: "flex", gap: 6 }}>
         {CATEGORIES.map((c) => (
           <div key={c} className={"sig-cat-pill" + (cat === c ? " active" : "")} onClick={() => setCat(c)}>{c}</div>
@@ -276,10 +370,10 @@ function LandingPage({ setPage, stats }) {
           <button className="sig-btn-primary" onClick={() => setPage("signup")}>Get started</button>
         </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, padding: "70px 48px 90px", alignItems: "center" }}>
+      <div className="sig-landing-hero" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, padding: "70px 48px 90px", alignItems: "center" }}>
         <div>
           <div style={{ fontSize: 11, letterSpacing: "0.12em", color: "rgba(234,231,224,0.45)", marginBottom: 20 }}>A GALLERY · A COMMUNITY · FREE FOREVER</div>
-          <div className="sig-serif" style={{ fontSize: 52, lineHeight: 1.1, marginBottom: 22 }}>
+          <div className="sig-serif sig-landing-hero-title" style={{ fontSize: 52, lineHeight: 1.1, marginBottom: 22 }}>
             Where <span style={{ fontStyle: "italic" }}>artists</span><br />become known<br />by their <span style={{ fontStyle: "italic" }}>signature.</span>
           </div>
           <div style={{ fontSize: 15, color: "rgba(234,231,224,0.65)", lineHeight: 1.6, marginBottom: 32, maxWidth: 460 }}>
@@ -311,7 +405,7 @@ function LandingPage({ setPage, stats }) {
       </div>
       <div style={{ padding: "60px 48px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
         <div style={{ fontSize: 11, letterSpacing: "0.12em", color: "rgba(234,231,224,0.45)", marginBottom: 8 }}>MANIFESTO</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60 }}>
+        <div className="sig-landing-manifesto" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 60 }}>
           <div className="sig-serif" style={{ fontSize: 32, lineHeight: 1.2 }}>Made for artists,<br />not for advertisers.</div>
           <div style={{ fontSize: 15, color: "rgba(234,231,224,0.65)", lineHeight: 1.7 }}>
             <p>Signature is a home for the work — the sketch on a Tuesday morning, the finished piece after six weeks, the photograph you almost deleted.</p>
@@ -370,9 +464,9 @@ function AuthPage({ mode, setPage, onError, error }) {
     : { title: <>Come back<br />to your studio.</>, sub: "Every stroke you made is still here. So is your community.", bg: "linear-gradient(160deg,#0f2d2d,#2a1a2e)" };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", height: "100vh" }}>
+    <div className="sig-auth-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", height: "100vh" }}>
       {!isSignup && (
-        <div style={{ position: "relative", background: heroCopy.bg }}>
+        <div className="sig-auth-hero-panel" style={{ position: "relative", background: heroCopy.bg }}>
           <div style={{ position: "absolute", top: 24, left: 40 }} className="sig-serif">Signature</div>
           <div style={{ position: "absolute", bottom: 40, left: 40, right: 40 }}>
             <div className="sig-serif" style={{ fontSize: 28, marginBottom: 10 }}>{heroCopy.title}</div>
@@ -420,7 +514,7 @@ function AuthPage({ mode, setPage, onError, error }) {
         )}
       </div>
       {isSignup && (
-        <div style={{ position: "relative", background: heroCopy.bg }}>
+        <div className="sig-auth-hero-panel" style={{ position: "relative", background: heroCopy.bg }}>
           <div style={{ position: "absolute", top: 24, right: 32 }} className="sig-serif">Signature</div>
           <div style={{ position: "absolute", bottom: 40, left: 40, right: 40 }}>
             <div className="sig-serif" style={{ fontSize: 28, marginBottom: 10 }}>{heroCopy.title}</div>
@@ -488,13 +582,13 @@ function UploadModal({ userId, onClose, onPublished }) {
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }} onClick={onClose}>
-      <div className="sig-fade-in" style={{ width: 760, maxWidth: "92vw", background: "#141414", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden" }} onClick={(e) => e.stopPropagation()}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 12 }} onClick={onClose}>
+      <div className="sig-fade-in sig-scrollbar" style={{ width: 760, maxWidth: "100%", maxHeight: "94vh", overflowY: "auto", background: "#141414", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 22px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           <div className="sig-serif" style={{ fontSize: 19 }}>Publish new work</div>
           <div style={{ cursor: "pointer", color: "rgba(234,231,224,0.6)" }} onClick={onClose}>✕</div>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+        <div className="sig-upload-modal-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
           <div style={{ padding: 22, borderRight: "1px solid rgba(255,255,255,0.08)" }}>
             <div onClick={() => fileRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }}
               style={{ height: 260, border: "1px dashed rgba(255,255,255,0.2)", borderRadius: 8, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden" }}>
@@ -570,7 +664,7 @@ function EditModal({ work, onClose, onSaved }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }} onClick={onClose}>
-      <div className="sig-fade-in" style={{ width: 480, maxWidth: "92vw", background: "#141414", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden" }} onClick={(e) => e.stopPropagation()}>
+      <div className="sig-fade-in" style={{ width: 480, maxWidth: "92vw", maxHeight: "94vh", overflowY: "auto", background: "#141414", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 22px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           <div className="sig-serif" style={{ fontSize: 19 }}>Edit work</div>
           <div style={{ cursor: "pointer", color: "rgba(234,231,224,0.6)" }} onClick={onClose}>✕</div>
@@ -634,7 +728,7 @@ function ReportModal({ work, reporterId, onClose, onSubmitted }) {
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }} onClick={onClose}>
-      <div className="sig-fade-in" style={{ width: 440, maxWidth: "92vw", background: "#141414", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden" }} onClick={(e) => e.stopPropagation()}>
+      <div className="sig-fade-in" style={{ width: 440, maxWidth: "92vw", maxHeight: "94vh", overflowY: "auto", background: "#141414", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 22px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           <div className="sig-serif" style={{ fontSize: 19 }}>Report this work</div>
           <div style={{ cursor: "pointer", color: "rgba(234,231,224,0.6)" }} onClick={onClose}>✕</div>
@@ -729,13 +823,13 @@ function WorkDetail({ work, profile, onBack, onDelete, onViewProfile, onEdit }) 
 
   return (
     <div style={{ display: "flex", height: "100vh" }}>
-      <div style={{ flex: 1, background: "#050505", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+      <div className="sig-work-image-pane" style={{ flex: 1, background: "#050505", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
         <div style={{ position: "absolute", top: 20, left: 24, display: "flex", alignItems: "center", gap: 6, cursor: "pointer", color: "rgba(234,231,224,0.8)", fontSize: 14 }} onClick={onBack}>
           <Icon name="back" /> Back
         </div>
         <img src={work.image_url} alt={work.title} style={{ maxWidth: "100%", maxHeight: "100vh", objectFit: "contain" }} />
       </div>
-      <div style={{ width: 340, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.08)", padding: "22px 24px", overflowY: "auto" }} className="sig-scrollbar">
+      <div className="sig-work-side-pane sig-scrollbar" style={{ width: 340, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.08)", padding: "22px 24px", overflowY: "auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ fontSize: 11, letterSpacing: "0.08em", color: "rgba(234,231,224,0.45)" }}>{(work.category || "").toUpperCase()}</div>
@@ -881,7 +975,7 @@ function ProfilePage({ userId, currentProfile, onOpen, onFollowChanged }) {
   return (
     <div>
       <div style={{ height: 180, background: viewedProfile.cover_url ? `url(${viewedProfile.cover_url}) center/cover` : "linear-gradient(135deg,#1a1a2e,#3d2a1a)" }} />
-      <div style={{ padding: "0 40px", marginTop: -44, display: "flex", alignItems: "flex-end", gap: 18 }}>
+      <div className="sig-profile-header" style={{ padding: "0 40px", marginTop: -44, display: "flex", alignItems: "flex-end", gap: 18 }}>
         <div style={{ width: 96, height: 96, borderRadius: "50%", background: "#2a2a2a", border: "4px solid #0a0a0a", overflow: "hidden", flexShrink: 0 }}>
           {viewedProfile.avatar_url && <img src={viewedProfile.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
         </div>
@@ -1064,7 +1158,7 @@ function SettingsPage({ profile, onSave }) {
       </div>
       <div style={{ marginBottom: 16 }}><label className="sig-label">Name</label><input className="sig-input" value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
       <div style={{ marginBottom: 16 }}><label className="sig-label">Bio</label><textarea className="sig-input" rows={3} value={form.bio || ""} onChange={(e) => setForm({ ...form, bio: e.target.value })} /></div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 24 }}>
+      <div className="sig-settings-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 24 }}>
         <div><label className="sig-label">Website</label><input className="sig-input" value={form.website || ""} onChange={(e) => setForm({ ...form, website: e.target.value })} /></div>
         <div><label className="sig-label">Instagram</label><input className="sig-input" value={form.instagram || ""} onChange={(e) => setForm({ ...form, instagram: e.target.value })} /></div>
         <div><label className="sig-label">Twitter</label><input className="sig-input" value={form.twitter || ""} onChange={(e) => setForm({ ...form, twitter: e.target.value })} /></div>
@@ -1196,18 +1290,23 @@ export default function App() {
     <>
       <GlobalStyle />
       {activeWork ? (
-        <WorkDetail
-          work={activeWork}
-          profile={profile}
-          onBack={() => { setActiveWork(null); loadWorks(); if (profile) loadFollowing(profile.id); }}
-          onDelete={handleDelete}
-          onViewProfile={(userId) => { setActiveWork(null); viewProfile(userId); }}
-          onEdit={(w) => setEditingWork(w)}
-        />
+        <div className="sig-work-detail">
+          <WorkDetail
+            work={activeWork}
+            profile={profile}
+            onBack={() => { setActiveWork(null); loadWorks(); if (profile) loadFollowing(profile.id); }}
+            onDelete={handleDelete}
+            onViewProfile={(userId) => { setActiveWork(null); viewProfile(userId); }}
+            onEdit={(w) => setEditingWork(w)}
+          />
+        </div>
       ) : (
-        <div style={{ display: "flex" }}>
-          <Sidebar profile={profile} page={page} setPage={setPage} onUploadClick={() => profile ? setShowUpload(true) : setPage("signin")} onSignOut={handleSignOut} onMyProfile={() => viewProfile(profile.id)} unreadCount={unreadCount} />
-          <div style={{ flex: 1, minWidth: 0, height: "100vh", overflowY: "auto" }} className="sig-scrollbar">
+        <div className="sig-app-shell">
+          <div className="sig-sidebar-desktop">
+            <Sidebar profile={profile} page={page} setPage={setPage} onUploadClick={() => profile ? setShowUpload(true) : setPage("signin")} onSignOut={handleSignOut} onMyProfile={() => viewProfile(profile.id)} unreadCount={unreadCount} />
+          </div>
+          <MobileTopBar profile={profile} setPage={setPage} onUploadClick={() => profile ? setShowUpload(true) : setPage("signin")} />
+          <div className="sig-main-area sig-scrollbar">
             {page === "explore" && (
               <>
                 <TopBar eyebrow="THE GALLERY" title="Explore" search={search} setSearch={setSearch} />
@@ -1237,6 +1336,7 @@ export default function App() {
             {page === "collections" && profile && <CollectionsPage profile={profile} />}
             {page === "settings" && profile && <SettingsPage profile={profile} onSave={handleSaveProfile} />}
           </div>
+          <MobileBottomNav profile={profile} page={page} setPage={setPage} onMyProfile={() => viewProfile(profile.id)} unreadCount={unreadCount} />
         </div>
       )}
       {showUpload && <UploadModal userId={profile.id} onClose={() => setShowUpload(false)} onPublished={() => { setShowUpload(false); loadWorks(); }} />}
