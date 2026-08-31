@@ -1,178 +1,128 @@
-# Signature — setup guide
+<div align="center">
 
-## 🚀 This checkpoint — what's new and what to do
+# Signature
 
-This build adds: Privacy Policy + Terms of Service pages, and a Report
-button on every artwork (with a `reports` table for moderation). Combined
-with everything from before (OTP-free magic link login, masonry grid,
-working Popular sort, real Following feed, public profiles, notifications,
-edit/delete, share, critique mode), this is meant to be launch-ready for
-public signups.
+**A quiet, high-fidelity gallery for illustrators, photographers, painters, and sketch artists.**
 
-### If you're updating an existing Supabase project (not starting fresh)
+No ads. No algorithm. No paywalls. Just the work.
 
-Run just this in Supabase → SQL Editor (safe to run once, adds the reports
-table without touching anything else):
+</div>
 
-```sql
-create table if not exists reports (
-  id uuid primary key default gen_random_uuid(),
-  reporter_id uuid references profiles(id) on delete cascade not null,
-  work_id uuid references works(id) on delete cascade not null,
-  reason text not null,
-  details text default '',
-  status text not null default 'pending',
-  created_at timestamptz default now()
-);
+---
 
-alter table reports enable row level security;
+## About
 
-drop policy if exists "Users can view their own reports" on reports;
-create policy "Users can view their own reports" on reports for select using (auth.uid() = reporter_id);
+Signature is a free portfolio and community platform built for artists who want their work seen without the noise of algorithmic feeds and engagement-chasing. Publish artwork, follow other creators, and — uniquely — flag a piece as **"Critique Requested"** to invite honest, structured feedback instead of just likes.
 
-drop policy if exists "Users can submit reports" on reports;
-create policy "Users can submit reports" on reports for insert with check (auth.uid() = reporter_id);
-```
+Built with React, Vite, and Supabase. Deployed on Vercel. Runs entirely on free tiers.
 
-Then replace your `src/App.jsx` with the one in this zip, and redeploy (push
-to GitHub — Vercel redeploys automatically).
+## Features
 
-### If you're starting fresh
+- **Passwordless login** — sign in with a one-click magic link sent to your email, no password to remember
+- **Masonry gallery** — every image keeps its true aspect ratio, no cropping
+- **Explore & Following feeds** — filter by category, search by tag or artist, sort by recent or popular
+- **Public artist profiles** — follower counts, total views/likes, a full gallery of someone's work
+- **Critique Requested mode** — flag a piece as open for structured feedback; critique comments are visually distinct from regular ones
+- **Real notifications** — likes, comments, and follows, with an unread badge
+- **Edit, delete, and share** your own published work
+- **Collections** — group your work into series or studies
+- **Reporting** — flag content for review, with a `reports` table for moderation
+- **Fully responsive** — desktop sidebar, mobile bottom nav, tablet-optimized layouts
+- **Privacy Policy & Terms of Service** included
 
-Just run the full `supabase-schema.sql` once — it already includes the
-reports table.
+## Tech stack
 
-## ✅ Pre-launch checklist (public launch, 100 users)
+| Layer | Tech |
+|---|---|
+| Frontend | React 18 + Vite |
+| Auth, database, storage | [Supabase](https://supabase.com) (Postgres + Row Level Security) |
+| Hosting | [Vercel](https://vercel.com) |
+| Email delivery | Gmail SMTP (optional, recommended over Supabase's default sender) |
 
-Go through these in order. Check off each before opening signups widely.
+No backend server to run or maintain — Supabase handles auth, the database, and file storage directly from the frontend.
 
-1. **Confirm email is ON** — Supabase → Authentication → Providers → Email
-   → "Confirm email" toggled on. Stops fake/bot signups.
-2. **Site URL is your live domain, not localhost** — Supabase →
-   Authentication → URL Configuration → Site URL set to your real
-   `.vercel.app` (or custom domain) URL. Also add it under Redirect URLs.
-3. **Magic Link email template uses `{{ .ConfirmationURL }}`** — Supabase →
-   Authentication → Emails → Templates → "Magic link or OTP" — body should
-   contain a link, not `{{ .Token }}`.
-4. **Gmail SMTP connected** — Supabase → Project Settings → Authentication →
-   SMTP Settings — so sign-in emails send reliably instead of hitting
-   Supabase's shared rate limit.
-5. **Privacy Policy + Terms live** — included in this checkpoint, linked
-   from the landing page footer and the sign-up form.
-6. **Report button live** — included in this checkpoint, visible on any
-   artwork you didn't post yourself.
-7. **Review reports periodically** — Supabase → Table Editor → `reports`
-   table. No admin UI yet; check this table manually every so often, or ask
-   me to build a simple admin view if volume grows.
-8. **Framework Preset is Vite in Vercel** — Vercel → Settings → General →
-   Framework Preset must say "Vite," not "Other," or builds fail.
-9. **Storage headroom** — free Supabase tier gives 1GB image storage. Fine
-   for ~100 users at reasonable upload sizes; keep an eye on it as you grow
-   past that.
+## Getting started
 
-## 1. Create your Supabase project
+### 1. Clone and install
 
-1. Go to https://supabase.com → sign in with GitHub → "New project"
-2. Name it `signature`, set a strong database password (save it), pick the closest region
-3. Wait ~90 seconds for it to finish setting up
+\`\`\`bash
+git clone https://github.com/imAryanSingh/Signature.git
+cd Signature
+npm install
+\`\`\`
 
-## 2. Run the database setup
+### 2. Set up Supabase
 
-1. In Supabase, open **SQL Editor** → **New query**
-2. Open `supabase-schema.sql` from this project, copy all of it, paste it in
-3. Click **Run**
+1. Create a free project at [supabase.com](https://supabase.com)
+2. In the SQL Editor, run the contents of [\`supabase-schema.sql\`](./supabase-schema.sql) — this creates every table, the storage bucket, security policies, and automated triggers
+3. Under **Authentication → Providers → Email**, enable email sign-in (magic link)
+4. Under **Authentication → URL Configuration**, set your Site URL (use \`http://localhost:5173\` for local dev)
 
-This creates every table (profiles, works, likes, comments, follows,
-collections, notifications, reports), the image storage bucket, all
-security rules, and the automatic triggers that create profiles on signup
-and notifications on likes/comments/follows.
+### 3. Configure environment variables
 
-## 3. Turn on Email OTP / Magic Link
+\`\`\`bash
+cp .env.example .env
+\`\`\`
 
-Supabase → **Authentication** → **Providers** → **Email**:
-- Make sure Email is enabled
-- Set **Email OTP length** to `8` (matches the code input in the app — if you
-  prefer 6, tell me and I'll adjust the app to match)
-- Save
+Fill in your Supabase project URL and anon key (found under **Project Settings → API**):
 
-## 4. Send OTP emails from your own Gmail (recommended)
-
-By default Supabase's shared email sender is rate-limited and can be
-unreliable. To send from your own Gmail instead:
-
-1. Turn on 2-Step Verification: https://myaccount.google.com/security
-2. Generate an app password: https://myaccount.google.com/apppasswords
-   (name it "Signature", copy the 16-character password)
-3. Supabase → **Project Settings** → **Authentication** → **SMTP Settings** → **Enable Custom SMTP**
-   - Sender email: your Gmail address
-   - Sender name: Signature
-   - Host: `smtp.gmail.com`
-   - Port: `587`
-   - Username: your Gmail address
-   - Password: the 16-character app password (no spaces)
-4. Save
-
-5. Supabase → **Authentication** → **Emails** → **Templates** → **Magic Link**:
-   edit the template body to include `{{ .Token }}` so it sends the numeric
-   code instead of a clickable link, e.g.:
-   ```html
-   <h2>Your Signature code</h2>
-   <p>Enter this code to sign in:</p>
-   <h1>{{ .Token }}</h1>
-   ```
-
-## 5. Get your API keys
-
-Supabase → **Project Settings** → **API** → copy the **Project URL** and the
-**anon public** key.
-
-## 6. Connect the code
-
-Copy `.env.example` to a new file named `.env` in this same folder, and fill in:
-```
+\`\`\`
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-public-key
-```
+\`\`\`
 
-## 7. Run it locally
+### 4. Run locally
 
-```
-npm install
+\`\`\`bash
 npm run dev
-```
-Open the printed localhost URL and test: create an account, upload art with
-a title/description/category/tags, like/comment, follow another test
-account, check notifications.
+\`\`\`
 
-## 8. Deploy for free on Vercel
+### 5. Deploy
 
-1. Push this project to a GitHub repo
-2. https://vercel.com → sign in with GitHub → **Add New Project** → pick your repo
-3. Add the same two environment variables from your `.env`
-4. Click **Deploy**
+Push to GitHub, then import the repo on [Vercel](https://vercel.com). Add the same two environment variables in the Vercel project settings, set the **Framework Preset to Vite**, and deploy. Update your Supabase Site URL to match your production domain afterward.
 
-You'll get a free `.vercel.app` URL. A custom domain later is optional
-(~$10-15/year), not required to launch.
+Full step-by-step instructions, including optional Gmail SMTP setup for reliable email delivery and a pre-launch checklist, are in [\`SETUP.md\`](./SETUP.md).
 
-## Free tier limits
+## Project structure
 
-- Supabase: 500MB database, 1GB file storage, 50,000 monthly active users
-- Vercel: 100GB bandwidth/month, unlimited deploys
+\`\`\`
+signature/
+├── src/
+│   ├── App.jsx             # entire application — components, pages, logic
+│   ├── main.jsx             # React entry point
+│   └── supabaseClient.js    # Supabase client initialization
+├── supabase-schema.sql      # full database schema, policies, and triggers
+├── index.html
+└── vercel.json               # SPA rewrite rule for client-side routing
+\`\`\`
 
-## What's included in this build
+## Database schema
 
-- Passwordless email-code login (sign up and sign in both use OTP, no passwords stored)
-- Explore feed: masonry grid (true image proportions, no cropping), category filters, search, working Recent/Popular sort
-- Following feed, filtered by real follow relationships
-- Public profile pages for any user — view works, follower count, total views/likes; Follow button when viewing someone else
-- Real notifications for likes, comments, and follows, with an unread badge in the sidebar
-- Upload requires title, description, category, and at least one tag
-- Edit and delete your own published work
-- Share button — copies a direct link to any artwork
-- Critique Requested mode — flag a piece as open for structured feedback; comments can be marked as a critique and are visually highlighted
+| Table | Purpose |
+|---|---|
+| \`profiles\` | user accounts (extends Supabase auth) |
+| \`works\` | published artwork |
+| \`likes\` | likes on works |
+| \`comments\` | comments, with a critique flag |
+| \`follows\` | follower relationships |
+| \`collections\` | user-created groupings of work |
+| \`notifications\` | likes/comments/follows, auto-generated via triggers |
+| \`reports\` | flagged content for moderation |
 
-## Known gaps / good next steps
+All tables use Row Level Security — users can only modify their own data.
 
-- Collections exist but works aren't yet assignable to them from the upload/edit flow
-- No image compression yet — keep files reasonably sized to protect your free storage quota as more people join
-- No moderation/reporting yet — worth adding before opening signups to strangers
+## Contributing
+
+This is a personal/independent project, but issues and pull requests are welcome. If you spot a bug or have a feature idea, open an issue.
+
+## License
+
+Free to use, modify, and self-host. No license restrictions currently specified — ask before redistributing commercially.
+
+---
+
+<div align="center">
+
+Made for artists, not for advertisers.
+
+</div>

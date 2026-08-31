@@ -80,9 +80,10 @@ const GlobalStyle = () => (
     .sig-work-side-pane { width: 340px; flex-shrink: 0; }
 
     @media (max-width: 860px) {
-      .sig-sidebar-desktop { display: none; }
-      .sig-mobile-topbar { display: flex; }
-      .sig-mobile-bottomnav { display: flex; }
+      .sig-sidebar-desktop { display: none !important; width: 0 !important; }
+      .sig-mobile-topbar { display: flex !important; }
+      .sig-mobile-bottomnav { display: flex !important; }
+      .sig-app-shell { flex-direction: column !important; }
       .sig-main-area { height: auto; min-height: 100vh; padding-bottom: 76px; overflow-y: visible; }
       .sig-masonry { column-count: 2 !important; padding: 14px 14px 40px !important; }
       .sig-cat-pill { font-size: 11px; padding: 6px 11px; }
@@ -106,6 +107,12 @@ const GlobalStyle = () => (
     }
     @media (max-width: 480px) {
       .sig-masonry { column-count: 2 !important; column-gap: 3px !important; }
+    }
+    @media (min-width: 861px) and (max-width: 1100px) {
+      .sig-sidebar-desktop > div { width: 220px !important; }
+      .sig-masonry { column-count: 3 !important; }
+      .sig-landing-hero { gap: 24px !important; padding: 50px 32px 60px !important; }
+      .sig-landing-hero-title { font-size: 42px !important; }
     }
   `}</style>
 );
@@ -362,9 +369,6 @@ function LandingPage({ setPage, stats }) {
     <div style={{ overflowY: "auto", height: "100vh" }} className="sig-scrollbar">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 48px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
         <div className="sig-serif" style={{ fontSize: 22 }}>Signature</div>
-        <div style={{ display: "flex", gap: 32, fontSize: 14, color: "rgba(234,231,224,0.7)" }}>
-          <span style={{ cursor: "pointer" }} onClick={() => setPage("explore")}>Explore</span>
-        </div>
         <div style={{ display: "flex", gap: 12 }}>
           <button className="sig-btn-outline" onClick={() => setPage("signin")}>Sign in</button>
           <button className="sig-btn-primary" onClick={() => setPage("signup")}>Get started</button>
