@@ -1,182 +1,112 @@
-# Signature — detailed setup & launch checklist
+# Signature — setup, upgrade & launch checklist
 
-For a quick overview of the project, see [README.md](./README.md). This
-file has the full step-by-step setup, plus the checklist to go through
-before opening the site to the public.
+Quick overview lives in [README.md](./README.md). This file is the step-by-step.
 
-## 🚀 This checkpoint — what's new and what to do
+---
 
-This build adds: Privacy Policy + Terms of Service pages, and a Report
-button on every artwork (with a `reports` table for moderation). Combined
-with everything from before (OTP-free magic link login, masonry grid,
-working Popular sort, real Following feed, public profiles, notifications,
-edit/delete, share, critique mode), this is meant to be launch-ready for
-public signups.
+## A. Upgrading your live site (existing project) — do this in order
 
-### If you're updating an existing Supabase project (not starting fresh)
-
-Run just this in Supabase → SQL Editor (safe to run once, adds the reports
-table without touching anything else):
-
-```sql
-create table if not exists reports (
-  id uuid primary key default gen_random_uuid(),
-  reporter_id uuid references profiles(id) on delete cascade not null,
-  work_id uuid references works(id) on delete cascade not null,
-  reason text not null,
-  details text default '',
-  status text not null default 'pending',
-  created_at timestamptz default now()
-);
-
-alter table reports enable row level security;
-
-drop policy if exists "Users can view their own reports" on reports;
-create policy "Users can view their own reports" on reports for select using (auth.uid() = reporter_id);
-
-drop policy if exists "Users can submit reports" on reports;
-create policy "Users can submit reports" on reports for insert with check (auth.uid() = reporter_id);
-```
-
-Then replace your `src/App.jsx` with the one in this zip, and redeploy (push
-to GitHub — Vercel redeploys automatically).
-
-### If you're starting fresh
-
-Just run the full `supabase-schema.sql` once — it already includes the
-reports table.
-
-## ✅ Pre-launch checklist (public launch, 100 users)
-
-Go through these in order. Check off each before opening signups widely.
-
-1. **Confirm email is ON** — Supabase → Authentication → Providers → Email
-   → "Confirm email" toggled on. Stops fake/bot signups.
-2. **Site URL is your live domain, not localhost** — Supabase →
-   Authentication → URL Configuration → Site URL set to your real
-   `.vercel.app` (or custom domain) URL. Also add it under Redirect URLs.
-3. **Magic Link email template uses `{{ .ConfirmationURL }}`** — Supabase →
-   Authentication → Emails → Templates → "Magic link or OTP" — body should
-   contain a link, not `{{ .Token }}`.
-4. **Gmail SMTP connected** — Supabase → Project Settings → Authentication →
-   SMTP Settings — so sign-in emails send reliably instead of hitting
-   Supabase's shared rate limit.
-5. **Privacy Policy + Terms live** — included in this checkpoint, linked
-   from the landing page footer and the sign-up form.
-6. **Report button live** — included in this checkpoint, visible on any
-   artwork you didn't post yourself.
-7. **Review reports periodically** — Supabase → Table Editor → `reports`
-   table. No admin UI yet; check this table manually every so often, or ask
-   me to build a simple admin view if volume grows.
-8. **Framework Preset is Vite in Vercel** — Vercel → Settings → General →
-   Framework Preset must say "Vite," not "Other," or builds fail.
-9. **Storage headroom** — free Supabase tier gives 1GB image storage. Fine
-   for ~100 users at reasonable upload sizes; keep an eye on it as you grow
-   past that.
-
-## 1. Create your Supabase project
-
-1. Go to https://supabase.com → sign in with GitHub → "New project"
-2. Name it `signature`, set a strong database password (save it), pick the closest region
-3. Wait ~90 seconds for it to finish setting up
-
-## 2. Run the database setup
-
-1. In Supabase, open **SQL Editor** → **New query**
-2. Open `supabase-schema.sql` from this project, copy all of it, paste it in
-3. Click **Run**
-
-This creates every table (profiles, works, likes, comments, follows,
-collections, notifications, reports), the image storage bucket, all
-security rules, and the automatic triggers that create profiles on signup
-and notifications on likes/comments/follows.
-
-## 3. Turn on Email OTP / Magic Link
-
-Supabase → **Authentication** → **Providers** → **Email**:
-- Make sure Email is enabled
-- Set **Email OTP length** to `8` (matches the code input in the app — if you
-  prefer 6, tell me and I'll adjust the app to match)
-- Save
-
-## 4. Send OTP emails from your own Gmail (recommended)
-
-By default Supabase's shared email sender is rate-limited and can be
-unreliable. To send from your own Gmail instead:
-
-1. Turn on 2-Step Verification: https://myaccount.google.com/security
-2. Generate an app password: https://myaccount.google.com/apppasswords
-   (name it "Signature", copy the 16-character password)
-3. Supabase → **Project Settings** → **Authentication** → **SMTP Settings** → **Enable Custom SMTP**
-   - Sender email: your Gmail address
-   - Sender name: Signature
-   - Host: `smtp.gmail.com`
-   - Port: `587`
-   - Username: your Gmail address
-   - Password: the 16-character app password (no spaces)
-4. Save
-
-5. Supabase → **Authentication** → **Emails** → **Templates** → **Magic Link**:
-   edit the template body to include `{{ .Token }}` so it sends the numeric
-   code instead of a clickable link, e.g.:
-   ```html
-   <h2>Your Signature code</h2>
-   <p>Enter this code to sign in:</p>
-   <h1>{{ .Token }}</h1>
+1. **Run the database migration first.**
+   Supabase → **SQL Editor** → **New query** → paste all of
+   [`migration-batch-2.sql`](./migration-batch-2.sql) → **Run**.
+   It is safe to run more than once. (If you deploy the new code first, the feed still
+   works, but verified badges, process shots, Growth Threads, tag following and the
+   view counter won't until you run it.)
+2. **Replace your project files** with this version and push:
    ```
+   git add .
+   git commit -m "Studio Log, Growth Threads, tag following, verification, digest, collections"
+   git push
+   ```
+   Vercel redeploys on its own.
+3. **Node version:** `package.json` now pins `"engines": { "node": "24.x" }`, so Vercel
+   builds on Node 24 automatically (Node 20 builds stop working on **1 Oct 2026**).
+   If a build ever complains, also set Vercel → Settings → General → Node.js Version → 24.x.
+4. Hard-refresh the live site (Ctrl+Shift+R; on a phone, close and reopen the tab).
 
-## 5. Get your API keys
+## B. Fresh install
 
-Supabase → **Project Settings** → **API** → copy the **Project URL** and the
-**anon public** key.
+1. Create a Supabase project, then run [`supabase-schema.sql`](./supabase-schema.sql) once in the SQL Editor.
+2. Copy `.env.example` to `.env` and fill in your Project URL and anon key
+   (Supabase → Project Settings → API).
+3. `npm install` then `npm run dev`.
 
-## 6. Connect the code
+## C. Supabase auth settings (one time)
 
-Copy `.env.example` to a new file named `.env` in this same folder, and fill in:
-```
-VITE_SUPABASE_URL=https://your-project-ref.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-public-key
-```
+- **Authentication → Providers → Email:** enabled, **Confirm email** ON.
+- **Authentication → URL Configuration:** Site URL = your live URL
+  (e.g. `https://signature-gray.vercel.app`). Add the same URL, with `/**`, under Redirect URLs.
+  Add `http://localhost:5173/**` too if you test locally.
+- **Authentication → Emails → Templates → "Magic link or OTP":** the body must contain a link,
+  not a code:
+  ```html
+  <h2>Your sign-in link</h2>
+  <p>Click below to sign in. This link expires shortly and can only be used once.</p>
+  <p><a href="{{ .ConfirmationURL }}">Sign in to Signature</a></p>
+  ```
+  Do the same for **Confirm sign up**.
+- **Project Settings → Authentication → SMTP Settings** (recommended): your Gmail address,
+  host `smtp.gmail.com`, port `587`, and a Google **App Password** (needs 2-Step Verification).
 
-## 7. Run it locally
+## D. Vercel
 
-```
-npm install
-npm run dev
-```
-Open the printed localhost URL and test: create an account, upload art with
-a title/description/category/tags, like/comment, follow another test
-account, check notifications.
+- Framework Preset: **Vite**.
+- Root Directory: **empty** (the repo root is the project).
+- Environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
 
-## 8. Deploy for free on Vercel
+## E. Weekly "Fresh Eyes" digest (optional)
 
-1. Push this project to a GitHub repo
-2. https://vercel.com → sign in with GitHub → **Add New Project** → pick your repo
-3. Add the same two environment variables from your `.env`
-4. Click **Deploy**
+The digest is an opt-in email (Settings → "Weekly Fresh Eyes email"). It runs as a GitHub
+Action, not on Vercel, so it needs secrets stored in GitHub.
 
-You'll get a free `.vercel.app` URL. A custom domain later is optional
-(~$10-15/year), not required to launch.
+1. GitHub repo → **Settings → Secrets and variables → Actions → New repository secret**. Add:
+   | Secret | Value |
+   |---|---|
+   | `SUPABASE_URL` | your Project URL |
+   | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API → **service_role** key |
+   | `GMAIL_USER` | the Gmail address that sends mail |
+   | `GMAIL_APP_PASSWORD` | the 16-character Google App Password |
+   | `SITE_URL` | your live URL, e.g. `https://signature-gray.vercel.app` |
+2. **The service_role key is a master key.** Only ever put it in GitHub secrets. Never in
+   `.env`, never in Vercel, never in the frontend, never in a screenshot or chat.
+3. Test it: GitHub → **Actions → Weekly Fresh Eyes digest → Run workflow** with *Dry run*
+   ticked. The log lists who would be emailed. Untick it to send for real.
+4. It then runs by itself every Monday at 09:00 IST. Gmail limits sending to roughly 500
+   emails a day; the script stops at 400. GitHub pauses scheduled workflows in a repo with
+   no activity for 60 days — push any commit to wake it.
 
-## Free tier limits
+## F. Approving verification requests
 
-- Supabase: 500MB database, 1GB file storage, 50,000 monthly active users
-- Vercel: 100GB bandwidth/month, unlimited deploys
+Members request the badge in Settings → "Get verified" (a note plus an optional link —
+no ID documents are collected).
 
-## What's included in this build
+1. Supabase → Table Editor → `verification_requests` → read the pending ones.
+2. To approve, run in the SQL Editor (replace the username):
+   ```sql
+   update profiles set verified = true where username = 'their_username';
+   update verification_requests set status = 'approved'
+     where user_id = (select id from profiles where username = 'their_username');
+   ```
+3. To decline: `update verification_requests set status = 'rejected' where id = '…';`
+4. To remove a badge: `update profiles set verified = false where username = '…';`
 
-- Passwordless email-code login (sign up and sign in both use OTP, no passwords stored)
-- Explore feed: masonry grid (true image proportions, no cropping), category filters, search, working Recent/Popular sort
-- Following feed, filtered by real follow relationships
-- Public profile pages for any user — view works, follower count, total views/likes; Follow button when viewing someone else
-- Real notifications for likes, comments, and follows, with an unread badge in the sidebar
-- Upload requires title, description, category, and at least one tag
-- Edit and delete your own published work
-- Share button — copies a direct link to any artwork
-- Critique Requested mode — flag a piece as open for structured feedback; comments can be marked as a critique and are visually highlighted
+Members cannot give themselves the badge — a database trigger blocks it.
 
-## Known gaps / good next steps
+## G. Moderation
 
-- Collections exist but works aren't yet assignable to them from the upload/edit flow
-- No image compression yet — keep files reasonably sized to protect your free storage quota as more people join
-- No moderation/reporting yet — worth adding before opening signups to strangers
+Reports land in the `reports` table (Table Editor). Review it regularly. To remove a piece,
+delete the row in `works`.
+
+## H. Pre-launch checklist
+
+- [ ] Confirm email is ON
+- [ ] Site URL + Redirect URLs point at the live domain, not localhost
+- [ ] "Magic link or OTP" and "Confirm sign up" templates use `{{ .ConfirmationURL }}`
+- [ ] Gmail SMTP connected
+- [ ] `migration-batch-2.sql` has been run
+- [ ] Vercel: Framework Preset = Vite, Root Directory empty, builds on Node 24
+- [ ] Sign up as a brand-new user on the live site end to end
+- [ ] Upload a piece with process shots; link a second piece to it as a Growth Thread
+- [ ] Open a shared link (`…/?work=<id>`) in a private window
+- [ ] Check it on a phone and a tablet
+- [ ] Storage headroom: Supabase free tier is 1 GB of files — fine for ~100 members
