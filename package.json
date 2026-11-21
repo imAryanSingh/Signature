@@ -1,7 +1,7 @@
 {
   "name": "signature",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.4.0",
   "type": "module",
   "engines": {
     "node": "24.x"
@@ -10,16 +10,20 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "digest": "node scripts/fresh-eyes-digest.mjs"
+    "digest": "node scripts/fresh-eyes-digest.mjs",
+    "test": "node --test tests/notify.test.mjs tests/daily-activity.test.mjs tests/ai-critique.test.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
+    "@fontsource/playfair-display": "^5.3.0",
     "@supabase/supabase-js": "^2.45.4",
+    "nodemailer": "^10.0.13",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
-    "nodemailer": "^10.0.13",
     "vite": "^5.4.8"
   }
 }

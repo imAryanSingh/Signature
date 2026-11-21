@@ -1,3 +1,22 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/ai-critique.js": {
+      "maxDuration": 60
+    },
+    "api/daily-activity.js": {
+      "maxDuration": 300
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/daily-activity",
+      "schedule": "30 3 * * *"
+    }
+  ]
 }

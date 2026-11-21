@@ -141,3 +141,17 @@ returns void as $$
 $$ language sql security definer set search_path = public;
 
 grant execute on function public.increment_work_views(uuid) to anon, authenticated;
+
+-- ------------------------------------------------------------
+-- Data API access. Supabase stopped granting this automatically for tables created
+-- from 30 Oct 2026, so it is stated here. Row Level Security above still decides
+-- which rows anyone can actually see or change.
+-- ------------------------------------------------------------
+grant select on public.work_steps, public.growth_threads to anon;
+grant select, insert, delete on public.work_steps, public.growth_threads to authenticated;
+grant select, insert, delete on public.tag_follows to authenticated;
+grant select, insert on public.verification_requests to authenticated;
+grant all on public.work_steps, public.growth_threads, public.tag_follows, public.verification_requests to service_role;
+
+-- Make the new tables/functions visible to the app right away.
+notify pgrst, 'reload schema';

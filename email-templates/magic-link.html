@@ -1,0 +1,15 @@
+<!-- Supabase -> Authentication -> Emails -> Templates -> "Magic link or OTP"
+     Subject:  Your Signature sign-in link
+     Paste everything below this comment into the Body box. -->
+<div style="max-width:480px;margin:0 auto;font-family:Arial,Helvetica,sans-serif;color:#222;line-height:1.6;">
+  <h2 style="font-family:Georgia,serif;font-weight:normal;margin:0 0 16px;">Sign in to Signature</h2>
+  <p>Hi — you (or someone using this email address) asked to sign in to <strong>Signature</strong>, the gallery for artists.</p>
+  <p style="margin:24px 0;">
+    <a href="{{ .ConfirmationURL }}" style="background:#111;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;display:inline-block;">Sign in to Signature</a>
+  </p>
+  <p style="font-size:13px;color:#555;">This link works once and expires soon. If the button doesn't work, copy and paste this address into your browser:<br />
+    <span style="word-break:break-all;">{{ .ConfirmationURL }}</span></p>
+  <p style="font-size:13px;color:#555;">If you didn't ask to sign in, you can safely ignore this email — nobody can get in without this link.</p>
+  <hr style="border:none;border-top:1px solid #ddd;margin:28px 0 12px;" />
+  <p style="font-size:12px;color:#888;">Signature · a free gallery for illustrators, photographers, painters and sketch artists.</p>
+</div>
